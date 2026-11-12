@@ -1,0 +1,447 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#1E3A2B"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Boletaire"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.png"><link rel="apple-touch-icon" href="icon.png"><style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>El boletaire campista</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabecera verde bosque con el titular; cuatro vistas (resumen, día a día, mapa, avistamientos) en una barra inferior de pulgar. */
+:root{
+  --bg:#ECEFE7; --surface:#FAFBF7; --ink:#1B2A20; --muted:#5A6557; --line:#D2D8CA; --halo:#FAFBF7;
+  --forest:#1E3A2B; --on-forest:#EDF1E8; --on-forest-muted:#A9BFA6;
+  --good:#2A6E3D; --good-bg:#D9EADB; --warn:#8A5E14; --warn-bg:#F4E4C4; --bad:#8C3325; --bad-bg:#F0D9D4;
+  --new:#3C5A78; --new-bg:#DCE6F0; --rain:#3A6C92; --map-filter:none;
+  --display:"Fraunces",Georgia,serif; --ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111813; --surface:#19231C; --ink:#E6ECE2; --muted:#9BAA9A; --line:#2D3B31; --halo:#111813;
+  --forest:#1E3A2B; --on-forest:#EDF1E8; --on-forest-muted:#A9BFA6;
+  --good:#7CC98F; --good-bg:#1E3A27; --warn:#E3B45E; --warn-bg:#3B2F15; --bad:#E69382; --bad-bg:#3E211B;
+  --new:#9FBFE0; --new-bg:#1E2C3B; --rain:#8DB9DC; --map-filter:brightness(.72) saturate(.8); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111813; --surface:#19231C; --ink:#E6ECE2; --muted:#9BAA9A; --line:#2D3B31; --halo:#111813;
+  --forest:#1E3A2B; --on-forest:#EDF1E8; --on-forest-muted:#A9BFA6;
+  --good:#7CC98F; --good-bg:#1E3A27; --warn:#E3B45E; --warn-bg:#3B2F15; --bad:#E69382; --bad-bg:#3E211B;
+  --new:#9FBFE0; --new-bg:#1E2C3B; --rain:#8DB9DC; --map-filter:brightness(.72) saturate(.8); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.45;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:var(--forest);color:var(--on-forest)}
+header.top .wrap{padding-block:16px 14px}
+.brand{font-family:var(--display);font-weight:600;font-size:21px;line-height:1.2}
+.date{color:var(--on-forest-muted);font-size:13px;margin-top:2px}
+.lead{font-family:var(--display);font-weight:500;font-size:16px;line-height:1.4;margin-top:10px;padding-top:10px;border-top:1px solid rgba(237,241,232,.18);text-wrap:balance}
+main .wrap{padding-block:16px 8px}
+section.view{display:flex;flex-direction:column;gap:16px}
+h2{font-family:var(--display);font-weight:600;font-size:18px;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+.blk{display:flex;flex-direction:column;gap:10px}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--warn);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card p{margin:0 0 8px}.card p:last-child{margin:0}
+.g{color:var(--good);background:var(--good-bg)}.w{color:var(--warn);background:var(--warn-bg)}.b{color:var(--bad);background:var(--bad-bg)}.n{color:var(--new);background:var(--new-bg)}
+.num{font-variant-numeric:tabular-nums}
+
+/* fin de semana */
+.wk{display:grid;grid-template-columns:1fr auto auto;gap:8px 10px;align-items:center}
+.wk .hd{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center}
+.wk .nm{min-width:0;background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.wk .nm b{display:block;font-weight:600}.wk .nm span{color:var(--muted);font-size:13px}
+.box{font-family:var(--display);font-weight:600;font-size:22px;line-height:1;min-width:46px;text-align:center;padding:9px 6px;border-radius:8px;font-variant-numeric:tabular-nums}
+
+/* rejilla 10 días */
+.hm-wrap{overflow-x:auto;margin-inline:-4px;padding-inline:4px}
+table.hm{border-collapse:separate;border-spacing:1.5px;width:100%;font-size:11px;font-variant-numeric:tabular-nums}
+.hm th{font-weight:500;color:var(--muted);padding:0 0 3px;text-align:center;line-height:1.15}
+.hm th.we{color:var(--ink);font-weight:600}
+.hm th b{display:block;font-size:12px;font-weight:inherit}
+.hm td.z{font-size:12px;text-align:left;padding-right:6px;white-space:nowrap;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+.hm td.c{padding:0}
+.hm td.c button{display:block;width:100%;min-width:21px;height:26px;border:0;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer;padding:0}
+.hm td.c .p{background:var(--new-bg);color:var(--new)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+
+/* avisos */
+.avis{border-left:3px solid var(--warn);padding:2px 0 2px 10px;font-size:14px}
+.avis b{font-weight:600}
+
+/* días */
+.days{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px;padding-block:2px}
+.days::-webkit-scrollbar{display:none}
+.day{flex:1 0 46px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 0 7px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.day small{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.day b{font-family:var(--display);font-size:17px;font-weight:600;line-height:1.1}
+.day i{width:22px;height:5px;border-radius:3px;margin-top:3px;background:var(--line)}
+.day.we small{color:var(--ink);font-weight:600}
+.day[aria-pressed="true"]{background:var(--forest);border-color:var(--forest)}
+.day[aria-pressed="true"] b,.day[aria-pressed="true"] small{color:var(--on-forest)}
+.row{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;margin-inline:-16px;padding-inline:16px}
+.row::-webkit-scrollbar{display:none}
+.row .lbl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);flex:none;width:56px}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);font-weight:500;font-size:13px;padding:6px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.list{display:flex;flex-direction:column;gap:8px}
+.zone{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.zh{display:grid;grid-template-columns:1fr auto;gap:2px 12px;cursor:pointer;background:none;border:0;padding:0;width:100%;text-align:left}
+.zh .nm{font-weight:600;min-width:0}
+.zh .meta{color:var(--muted);font-size:13px;grid-column:1}
+.zh .box{grid-row:1/span 3;grid-column:2;align-self:center}
+.zh .box.n{font:600 12px var(--ui);padding:11px 8px}
+.strip{grid-column:1;display:flex;align-items:flex-end;gap:2px;height:22px;margin-top:5px;max-width:190px}
+.strip i{flex:1;border-radius:2px 2px 0 0;min-height:2px;background:var(--c)}
+.strip i.on{outline:2px solid var(--ink);outline-offset:1px}
+.detail{border-top:1px solid var(--line);margin-top:10px;padding-top:12px;display:flex;flex-direction:column;gap:14px}
+.dt{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:13px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px;background:var(--c)}
+.bars .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.why{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.why div{min-width:0;font-size:13px}
+.why b{display:block;font-weight:600}
+.why span{color:var(--muted);display:block;margin-bottom:4px}
+.note{font-size:13px;color:var(--muted)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:600}
+svg.rain{display:block;width:100%;height:auto;touch-action:pan-y}
+.rain text{font-family:var(--ui);font-size:9px;fill:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a,.linkbtn{font-weight:600;font-size:13px;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;text-decoration:none;background:var(--bg);cursor:pointer}
+.seen{font-size:13px;border-left:3px solid var(--good);padding-left:10px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+
+/* mapa */
+.mapbox{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:var(--surface);touch-action:none;aspect-ratio:880/926;max-width:100%;cursor:grab;user-select:none;-webkit-user-select:none}
+.world{position:absolute;inset:0;transform-origin:0 0;--inv:1}
+.world img{position:absolute;inset:0;width:100%;height:100%;max-width:none;filter:var(--map-filter);pointer-events:none;-webkit-user-drag:none}
+.town{position:absolute;transform:translate(-50%,-50%) scale(var(--inv));font-size:10px;color:var(--ink);white-space:nowrap;pointer-events:none;
+  text-shadow:0 0 2px var(--halo),0 0 2px var(--halo),0 0 3px var(--halo),0 0 3px var(--halo)}
+.town::before{content:"";display:block;width:4px;height:4px;border-radius:50%;background:var(--ink);margin:0 auto 1px}
+.mk{position:absolute;transform:translate(-50%,-50%) scale(var(--inv));border-radius:50%;border:3px solid var(--c);background:var(--surface);
+  font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-variant-numeric:tabular-nums;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.mk.sel{box-shadow:0 0 0 3px var(--ink),0 1px 4px rgba(0,0,0,.35)}
+.camp{position:absolute;transform:translate(-50%,-50%) scale(var(--inv));pointer-events:none;font-size:10px;font-weight:700;white-space:nowrap;text-align:center;
+  text-shadow:0 0 2px var(--halo),0 0 2px var(--halo),0 0 3px var(--halo)}
+.camp::before{content:"";display:block;width:11px;height:11px;background:var(--ink);border:2px solid var(--halo);transform:rotate(45deg);margin:0 auto 3px}
+.world #tiles img{position:absolute;max-width:none;opacity:0;transition:opacity .2s;pointer-events:none;filter:var(--map-filter);-webkit-user-drag:none}
+.mapbox.has-tiles .town{display:none}
+.attr{position:absolute;left:0;bottom:0;font-size:9px;line-height:1.3;padding:1px 5px;background:var(--surface);color:var(--muted);border-top-right-radius:6px;opacity:.9}
+.zoomer{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.zoomer button{width:36px;height:36px;border:0;background:none;font-size:20px;line-height:1;cursor:pointer}
+.zoomer button+button{border-top:1px solid var(--line)}
+
+/* avistamientos */
+.sight{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.sight .h{display:flex;justify-content:space-between;gap:10px;font-weight:600}
+.sight .h span:last-child{color:var(--muted);font-weight:400;font-size:13px;flex:none}
+.sp{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:14px;align-items:center}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+.pill.x{color:var(--muted);background:var(--bg)}
+footer{color:var(--muted);font-size:12px;line-height:1.5;margin-top:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:5}
+nav.tabs div{max-width:680px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 8px;color:var(--muted);text-decoration:none;font-weight:600;font-size:11px}
+nav.tabs a svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs a[aria-current="page"]{color:var(--good)}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand">El boletaire campista</div>
+  <div class="date" id="date"></div>
+  <div class="lead" id="lead"></div>
+</div></header>
+
+<main><div class="wrap">
+  <section class="view" id="v-resumen">
+    <div class="blk"><div><h2 id="wk-t">Este fin de semana</h2><p class="sub">Las tres mejores zonas. Toca una para ver el detalle.</p></div>
+      <div class="card"><div class="wk" id="wk"></div></div></div>
+    <div class="blk"><div><h2>Los próximos 10 días</h2><p class="sub">Mejor puntuación de cada zona, ordenadas por cercanía. Toca una casilla para abrir ese día.</p></div>
+      <div class="card"><div class="hm-wrap"><table class="hm" id="hm"></table></div></div>
+      <div class="legend"><span style="--c:var(--good)">65 o más</span><span style="--c:var(--warn)">40 a 64</span><span style="--c:var(--bad)">menos de 40</span><span style="--c:var(--new)">sin datos todavía</span></div></div>
+    <div class="blk" id="avis-blk"><h2>Avisos</h2><div class="card blk" id="avis"></div></div>
+    <div class="blk"><h2>Temporada</h2><div class="card" id="ctx"></div></div>
+  </section>
+
+  <section class="view" id="v-dias" hidden>
+    <div class="days" id="days1" role="group" aria-label="Día"></div>
+    <div class="blk">
+      <div class="row"><span class="lbl">Viaje</span><span id="f-viaje" style="display:contents"></span></div>
+      <div class="row"><span class="lbl">Especie</span><span id="f-esp" style="display:contents"></span></div>
+      <div class="row"><span class="lbl">Orden</span><span id="f-orden" style="display:contents"></span></div>
+    </div>
+    <div class="list" id="zlist"></div>
+  </section>
+
+  <section class="view" id="v-mapa" hidden>
+    <div class="days" id="days2" role="group" aria-label="Día"></div>
+    <div class="row"><span class="lbl">Especie</span><span id="f-esp2" style="display:contents"></span></div>
+    <div class="mapbox" id="mapbox">
+      <div class="world" id="world"><img alt="" src="relleu.jpg"><div id="tiles"></div></div>
+      <div class="attr" id="attr" hidden>Mapa: © OpenStreetMap, SRTM · OpenTopoMap (CC-BY-SA)</div>
+      <div class="zoomer"><button id="zin" aria-label="Acercar">+</button><button id="zout" aria-label="Alejar">−</button></div>
+    </div>
+    <p class="sub" style="margin:0">Arrastra para moverte y pellizca o usa + y − para ampliar. Toca una zona para ver su detalle.</p>
+    <div class="list" id="mapdetail"></div>
+  </section>
+
+  <section class="view" id="v-avistamientos" hidden>
+    <div><h2>Lo que hemos encontrado</h2><p class="sub" id="s-sub"></p></div>
+    <div class="list" id="slist"></div>
+  </section>
+
+  <footer>El número dice si las condiciones acompañan, no que haya bolets, y su escala no es proporcional a los kilos. Identificad siempre lo que recogéis. Meteo: Open-Meteo (ERA5 y previsión).</footer>
+</div></main>
+
+<nav class="tabs" aria-label="Vistas"><div>
+  <a href="#resumen"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg>Resumen</a>
+  <a href="#dias"><svg viewBox="0 0 24 24"><path d="M4 7h16v13H4zM4 11h16M8 4v4M16 4v4"/></svg>Día a día</a>
+  <a href="#mapa"><svg viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Mapa</a>
+  <a href="#avistamientos"><svg viewBox="0 0 24 24"><path d="M4 11a8 6 0 0 1 16 0zM10 11v6a2 2 0 0 0 4 0v-6"/></svg>Avistamientos</a>
+</div></nav>
+
+<script type="application/json" id="fallback">{"generat":"2026-11-12T11:45","data_calcul":"2026-11-12","dies":["2026-11-12","2026-11-13","2026-11-14","2026-11-15","2026-11-16","2026-11-17","2026-11-18","2026-11-19","2026-11-20","2026-11-21"],"origen":{"nom":"Camping La Noguera - Sant Llorenç de Montgai","lat":41.842,"lon":0.802},"context":{"pct_pluja":86,"analegs":[2016,2021,2009]},"zones":[{"id":1,"codi":"MTS-ARES","nom":"Montsec d'Ares - solana","lat":42.0067,"lon":0.7467,"minuts":35,"km":30,"alt":[500,900],"bosc":"pi blanc, pinassa","orientacio":"solana","acces":"Àger","notes":"Red de seguridad. Temporada tardía (nov-des). Solo responde con lluvia consistente.","pendent":false,"especies":{"Rovelló":{"s":[10,44,60,77,88,87,84,84,82,86],"f":[[2,100,100,100],[25,87,100,100],[52,64,100,100],[80,68,100,100],[100,71,100,100],[100,67,100,100],[100,60,100,100],[100,62,100,100],[100,56,100,100],[100,66,100,100]],"mm":[0.5,8.9,18.2,28.0,37.5,46.9,56.4,50.1,42.2,37.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[500,900],"st":[12.6,11.2,9.9,10.1,10.3,10.0,9.6,9.7,9.4,9.9]},"Llenega negra":{"s":[10,46,68,86,98,98,98,98,98,98],"f":[[2,100,100,100],[25,100,100,100],[52,100,100,100],[80,100,100,100],[100,100,100,100],[100,100,100,100],[100,100,100,100],[100,100,100,100],[100,100,100,100],[100,100,100,100]],"mm":[0.5,8.9,18.2,28.0,37.5,46.9,56.4,50.1,42.2,37.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[500,900],"st":[12.6,11.2,9.9,10.1,10.3,10.0,9.6,9.7,9.4,9.9]},"Apagallums":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[100,78,100,100],[100,53,100,100],[100,31,100,100],[100,35,100,100],[100,38,100,100],[100,34,100,100],[100,26,100,100],[100,28,100,100],[100,23,100,100],[100,32,100,100]],"mm":[46.9,56.4,50.1,42.2,37.0,45.3,53.5,63.9,81.5,101.0],"fin":[9,10,11,12,13,14,6,7,8,9],"ref":["2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-12","2026-11-12","2026-11-12","2026-11-12"],"cota":[500,900],"st":[12.6,11.2,9.9,10.1,10.3,10.0,9.6,9.7,9.4,9.9]}},"meteo":[{"st":12.6,"sm":100,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":11.2,"sm":100,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":9.9,"sm":99,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":10.1,"sm":98,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":10.3,"sm":100,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":10.0,"sm":100,"tmin12":1.6,"vent":100,"conf":"previsio"},{"st":9.6,"sm":100,"tmin12":1.8,"vent":100,"conf":"previsio"},{"st":9.7,"sm":100,"tmin12":4.4,"vent":100,"conf":"previsio"},{"st":9.4,"sm":100,"tmin12":4.7,"vent":100,"conf":"previsio"},{"st":9.9,"sm":100,"tmin12":4.7,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.6,0.0,0.0,26.6,3.6,1.4,0.0,0.0,0.0,1.7,1.9,11.5,43.4,0.0,7.0,0.4,6.3,15.8,9.3,0.0,6.0,13.6],"previst_des_de":21,"tmax":[16,15,13,12,14,15,12,16,14,15],"tmin":[11,9,9,8,8,6,7,7,5,6]}},{"id":2,"codi":"MTS-RUB","nom":"Montsec de Rúbies - obaga","lat":42.075,"lon":0.9067,"minuts":45,"km":40,"alt":[900,1400],"bosc":"pinassa, pi roig","orientacio":"obaga","acces":"Sant Esteve de la Sarga","notes":"Retiene humedad mucho mejor que la solana. Referencia para contraste obaga/solana.","pendent":false,"especies":{"Fredolic":{"s":[4,26,44,57,66,78,91,84,77,70],"f":[[1,27,100,100],[13,51,100,100],[29,67,100,100],[46,68,100,100],[63,62,100,100],[80,70,100,100],[97,81,100,100],[92,71,100,100],[77,72,100,100],[74,55,100,100]],"mm":[0.2,3.8,8.8,13.9,19.0,24.1,29.2,27.4,23.1,22.2],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[900,1400],"st":[14.4,12.9,12.0,11.9,12.3,11.8,11.2,11.8,11.7,12.7]},"Pinetell":{"s":[6,29,46,59,70,80,89,81,69,62],"f":[[0,100,100,100],[11,100,100,100],[25,100,100,100],[40,100,100,100],[54,100,100,100],[69,100,100,100],[83,100,100,100],[78,100,100,100],[66,100,100,100],[64,100,100,100]],"mm":[0.2,3.8,8.8,13.9,19.0,24.1,29.2,27.4,23.1,22.2],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[900,1400],"st":[14.4,12.9,12.0,11.9,12.3,11.8,11.2,11.8,11.7,12.7]},"Llenega negra":{"s":[5,29,46,59,70,80,89,86,78,77],"f":[[0,85,100,100],[11,100,100,100],[25,100,100,100],[40,100,100,100],[54,100,100,100],[69,100,100,100],[83,100,100,100],[78,100,100,100],[66,100,100,100],[64,100,100,100]],"mm":[0.2,3.8,8.8,13.9,19.0,24.1,29.2,27.4,23.1,22.2],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[900,1200],"st":[14.9,13.4,12.5,12.4,12.8,12.3,11.7,12.3,12.2,13.2]},"Rovelló":{"s":[6,29,46,59,70,80,89,86,78,77],"f":[[0,100,100,100],[11,100,100,100],[25,100,100,100],[40,100,100,100],[54,100,100,100],[69,100,100,100],[83,98,100,100],[78,100,100,100],[66,100,100,100],[64,100,100,100]],"mm":[0.2,3.8,8.8,13.9,19.0,24.1,29.2,27.4,23.1,22.2],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[900,1100],"st":[15.1,13.7,12.8,12.7,13.0,12.5,11.9,12.5,12.4,13.4]}},"meteo":[{"st":14.4,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":12.9,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":12.0,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":11.9,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":12.3,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":11.8,"sm":100,"tmin12":2.9,"vent":100,"conf":"previsio"},{"st":11.2,"sm":100,"tmin12":3.1,"vent":100,"conf":"previsio"},{"st":11.8,"sm":100,"tmin12":5.4,"vent":100,"conf":"previsio"},{"st":11.7,"sm":100,"tmin12":5.4,"vent":100,"conf":"previsio"},{"st":12.7,"sm":100,"tmin12":5.4,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,0.0,0.0,0.0,11.9,4.5,0.4,0.0,0.0,0.0,1.3,0.6,12.0,38.9,0.0,6.2,0.3,5.7,13.8,8.1,0.0,4.0,11.6],"previst_des_de":21,"tmax":[18,17,14,14,15,17,13,18,16,17],"tmin":[11,8,8,8,7,5,8,7,6,8]}},{"id":3,"codi":"BOUMORT","nom":"Boumort - Bóixols","lat":42.2267,"lon":1.1433,"minuts":80,"km":75,"alt":[1200,1700],"bosc":"pi roig","orientacio":"mixta","acces":"Abella de la Conca","notes":"Núcleo del sistema. Buen equilibrio cota/distancia.","pendent":false,"especies":{"Cep":{"s":[4,6,5,4,12,16,18,32,6,35],"f":[[3,58,100,55],[10,28,100,55],[17,4,100,55],[23,1,100,55],[30,9,100,55],[37,10,100,55],[39,14,100,55],[35,22,98,100],[41,0,92,100],[76,11,100,100]],"mm":[1.2,3.9,6.6,9.3,12.0,14.7,15.6,14.0,16.4,30.3],"fin":[null,null,null,null,null,null,14,15,16,9],"ref":[null,null,null,null,null,null,"2026-11-04","2026-11-04","2026-11-04","2026-11-12"],"cota":[1200,1700],"st":[9.5,7.7,6.3,6.1,6.5,6.6,6.8,7.3,5.9,6.7]},"Pinetell":{"s":[2,8,13,16,21,24,51,50,36,43],"f":[[0,95,100,55],[4,66,100,55],[11,42,100,55],[19,38,100,55],[27,47,100,55],[34,48,100,55],[42,51,100,100],[45,59,98,100],[40,36,92,100],[47,48,100,100]],"mm":[0.1,1.2,3.9,6.6,9.3,12.0,14.7,15.6,14.0,16.4],"fin":[null,null,null,12,12,13,14,15,16,17],"ref":[null,null,null,"2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04"],"cota":[1200,1600],"st":[9.7,7.9,6.5,6.3,6.8,6.9,7.1,7.6,6.1,6.9]},"Camagroc":{"s":[83,51,7,2,2,3,13,25,29,40],"f":[[71,100,100,100],[29,100,100,100],[1,79,100,100],[0,76,100,100],[0,84,100,100],[0,85,100,100],[3,89,100,100],[9,97,98,100],[15,73,92,100],[21,86,100,100]],"mm":[32.1,13.3,0.4,0.0,0.1,0.1,1.2,3.9,6.6,9.3],"fin":[24,25,null,null,null,null,null,null,null,null],"ref":["2026-10-19","2026-10-19",null,null,null,null,null,null,null,null],"cota":[1200,1500],"st":[10.0,8.2,6.8,6.6,7.0,7.1,7.3,7.8,6.4,7.2]},"Fredolic":{"s":[4,17,32,44,52,60,68,68,60,72],"f":[[0,100,100,100],[4,100,100,100],[13,100,100,100],[22,100,100,100],[31,100,100,100],[40,100,100,100],[49,100,100,100],[52,100,98,100],[46,100,92,100],[55,100,100,100]],"mm":[0.1,1.2,3.9,6.6,9.3,12.0,14.7,15.6,14.0,16.4],"fin":[null,null,11,12,12,13,14,15,16,17],"ref":[null,null,"2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04"],"cota":[1200,1600],"st":[9.7,7.9,6.5,6.3,6.8,6.9,7.1,7.6,6.1,6.9]}},"meteo":[{"st":9.5,"sm":88,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":7.7,"sm":51,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.3,"sm":42,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.1,"sm":41,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.5,"sm":84,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.6,"sm":61,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.8,"sm":46,"tmin12":-1.1,"vent":100,"conf":"previsio"},{"st":7.3,"sm":39,"tmin12":0.9,"vent":100,"conf":"previsio"},{"st":5.9,"sm":36,"tmin12":3.4,"vent":100,"conf":"previsio"},{"st":6.7,"sm":78,"tmin12":1.0,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,3.7,4.9,0.3,0.0,0.0,0.0,1.7,1.1,14.1,37.4,0.0,0.8,5.5,2.0,1.0,0.0,0.4,2.4,8.2],"previst_des_de":21,"tmax":[10,10,9,8,10,9,11,11,9,12],"tmin":[6,4,3,4,4,4,3,4,4,1]}},{"id":11,"codi":"RUBIO-CFB","nom":"Serra de Rubió - Castellfollit del Boix","lat":41.6533,"lon":1.5933,"minuts":80,"km":105,"alt":[500,850],"bosc":"pi blanc, pinassa","orientacio":"mixta","acces":"Rubió","notes":"Zona de referencia del equipo en l'Anoia. Regimen mas seco y calido que el resto.","pendent":false,"especies":{"Llenega negra":{"s":[2,31,49,67,80,91,97,97,92,86],"f":[[0,100,100,100],[13,100,100,100],[31,100,100,100],[51,100,100,100],[70,100,100,100],[90,100,100,100],[100,100,100,100],[100,100,100,100],[92,100,100,100],[80,100,100,100]],"mm":[0.0,4.7,11.0,17.8,24.6,31.5,38.3,36.9,32.2,28.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[500,850],"st":[13.9,12.5,11.1,11.1,10.9,11.3,12.0,11.8,12.2,11.9]},"Rovelló":{"s":[2,31,47,64,75,88,97,96,92,85],"f":[[0,100,100,100],[13,100,100,100],[31,84,100,100],[51,86,100,100],[70,82,100,100],[90,89,100,100],[100,99,100,100],[100,96,100,100],[92,100,100,100],[80,99,100,100]],"mm":[0.0,4.7,11.0,17.8,24.6,31.5,38.3,36.9,32.2,28.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[500,850],"st":[13.9,12.5,11.1,11.1,10.9,11.3,12.0,11.8,12.2,11.9]},"Fredolic":{"s":[2,28,50,68,83,90,86,87,84,83],"f":[[0,34,100,100],[16,58,100,100],[37,82,100,100],[59,81,100,100],[82,85,100,100],[100,78,100,100],[100,67,100,100],[100,70,100,100],[100,63,100,100],[93,68,100,100]],"mm":[0.0,4.7,11.0,17.8,24.6,31.5,38.3,36.9,32.2,28.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[500,850],"st":[13.9,12.5,11.1,11.1,10.9,11.3,12.0,11.8,12.2,11.9]},"Pinetell":{"s":[1,10,16,22,27,30,32,30,27,23],"f":[[0,100,100,100],[13,100,100,100],[31,100,100,100],[51,100,100,100],[70,100,100,100],[90,100,100,100],[100,100,100,100],[100,100,100,100],[92,100,100,100],[80,100,100,100]],"mm":[0.0,4.7,11.0,17.8,24.6,31.5,38.3,36.9,32.2,28.0],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[800,850],"st":[13.2,11.8,10.3,10.4,10.1,10.6,11.2,11.0,11.5,11.2]},"Apagallums":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[100,99,100,100],[100,76,100,100],[100,51,100,100],[100,52,100,100],[100,48,100,100],[100,56,100,100],[100,66,100,100],[100,63,100,100],[100,70,100,100],[100,65,100,100]],"mm":[31.5,38.3,36.9,32.2,28.0,31.5,35.1,39.2,45.7,54.2],"fin":[9,10,11,12,13,14,6,7,8,9],"ref":["2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-12","2026-11-12","2026-11-12","2026-11-12"],"cota":[500,850],"st":[13.9,12.5,11.1,11.1,10.9,11.3,12.0,11.8,12.2,11.9]}},"meteo":[{"st":13.9,"sm":100,"tmin12":2.7,"vent":75,"conf":"previsio"},{"st":12.5,"sm":99,"tmin12":2.7,"vent":75,"conf":"previsio"},{"st":11.1,"sm":97,"tmin12":2.7,"vent":75,"conf":"previsio"},{"st":11.1,"sm":96,"tmin12":2.7,"vent":100,"conf":"previsio"},{"st":10.9,"sm":93,"tmin12":2.7,"vent":100,"conf":"previsio"},{"st":11.3,"sm":97,"tmin12":2.7,"vent":100,"conf":"previsio"},{"st":12.0,"sm":95,"tmin12":2.7,"vent":100,"conf":"previsio"},{"st":11.8,"sm":100,"tmin12":5.6,"vent":100,"conf":"previsio"},{"st":12.2,"sm":100,"tmin12":7.1,"vent":100,"conf":"previsio"},{"st":11.9,"sm":100,"tmin12":7.1,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,15.3,5.4,1.7,0.0,0.0,0.0,3.6,0.0,4.9,25.4,0.0,1.8,0.0,0.9,7.2,2.7,0.0,2.9,11.3],"previst_des_de":21,"tmax":[17,15,15,14,14,16,15,17,15,15],"tmin":[12,10,9,10,8,7,10,7,9,8]}},{"id":12,"codi":"SOBRECAST","nom":"Sobrecastell - Cornudella de Baliera","lat":42.2843,"lon":0.6913,"minuts":85,"km":85,"alt":[700,1200],"bosc":"pi roig, pinassa","orientacio":"mixta","acces":"Arén / Sobrecastell","notes":"Ribagorza (Huesca). Propuesta por Marcos el 31-oct-2026. Tres sectores: bosque central, ladera hacia Berganuy y sector norte/este.","pendent":false,"especies":{"Pinetell":{"s":[6,32,46,58,74,83,91,86,70,66],"f":[[1,100,100,100],[13,100,100,100],[27,81,100,100],[44,77,100,100],[60,93,100,100],[76,90,100,100],[92,84,100,100],[87,98,100,100],[78,76,100,100],[72,88,100,100]],"mm":[0.2,4.4,9.4,15.2,20.9,26.5,32.2,30.3,27.1,25.3],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[800,1200],"st":[12.0,10.0,8.9,8.6,9.6,9.4,9.1,9.9,8.6,9.3]},"Rovelló":{"s":[6,30,41,52,67,75,82,84,71,73],"f":[[1,100,100,100],[13,75,100,100],[27,56,100,100],[44,52,100,100],[60,68,100,100],[76,65,100,100],[92,59,100,100],[87,73,100,100],[78,51,100,100],[72,63,100,100]],"mm":[0.2,4.4,9.4,15.2,20.9,26.5,32.2,30.3,27.1,25.3],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[700,1100],"st":[12.5,10.5,9.4,9.1,10.1,9.9,9.6,10.4,9.1,9.8]},"Fredolic":{"s":[6,34,53,69,82,93,100,99,95,91],"f":[[1,62,100,100],[15,96,100,100],[31,100,100,100],[51,100,100,100],[70,100,100,100],[88,100,100,100],[100,100,100,100],[100,98,100,100],[90,100,100,100],[84,100,100,100]],"mm":[0.2,4.4,9.4,15.2,20.9,26.5,32.2,30.3,27.1,25.3],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[700,1200],"st":[12.3,10.3,9.1,8.9,9.8,9.6,9.3,10.1,8.8,9.6]},"Llenega negra":{"s":[6,32,49,63,75,86,95,92,87,84],"f":[[1,100,100,100],[13,100,100,100],[27,100,100,100],[44,100,100,100],[60,100,100,100],[76,100,100,100],[92,100,100,100],[87,100,100,100],[78,100,100,100],[72,100,100,100]],"mm":[0.2,4.4,9.4,15.2,20.9,26.5,32.2,30.3,27.1,25.3],"fin":[null,10,11,12,13,14,15,16,17,18],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[700,1200],"st":[12.3,10.3,9.1,8.9,9.8,9.6,9.3,10.1,8.8,9.6]}},"meteo":[{"st":12.0,"sm":97,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":10.0,"sm":83,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":8.9,"sm":91,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":8.6,"sm":93,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":9.6,"sm":95,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":9.4,"sm":87,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":9.1,"sm":78,"tmin12":1.7,"vent":100,"conf":"previsio"},{"st":9.9,"sm":67,"tmin12":3.1,"vent":100,"conf":"previsio"},{"st":8.6,"sm":60,"tmin12":4.8,"vent":100,"conf":"previsio"},{"st":9.3,"sm":91,"tmin12":4.8,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.3,0.0,0.0,13.5,2.6,2.7,0.0,0.0,0.0,2.4,0.8,9.7,37.4,0.0,1.5,7.7,1.1,2.4,0.0,0.0,4.1,8.3],"previst_des_de":17,"tmax":[16,14,13,12,15,14,16,16,13,15],"tmin":[9,5,5,6,6,6,6,5,5,5]}},{"id":4,"codi":"PORTCOMTE","nom":"Port del Comte","lat":42.17,"lon":1.57,"minuts":90,"km":85,"alt":[1300,1800],"bosc":"pi roig, pi negre","orientacio":"mixta","acces":"La Coma i la Pedra","notes":"Zona de referencia del CTFC (Solsona a 25 km).","pendent":false,"especies":{"Cep":{"s":[1,1,0,0,4,5,9,7,6,9],"f":[[5,48,100,10],[14,13,100,10],[24,0,100,10],[32,0,100,10],[40,0,100,55],[49,0,100,55],[51,0,100,100],[44,0,97,100],[43,0,90,100],[81,0,100,100]],"mm":[2.1,5.7,9.4,12.8,16.2,19.6,20.4,17.6,17.3,32.3],"fin":[null,10,11,12,12,13,14,15,16,9],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-12"],"cota":[1300,1700],"st":[8.9,6.8,4.9,4.2,5.6,5.6,4.9,6.0,4.3,5.5]},"Pinetell":{"s":[5,10,12,12,22,46,44,50,26,38],"f":[[1,86,100,55],[6,51,100,55],[16,20,100,55],[27,8,100,55],[36,31,100,55],[46,31,100,100],[56,18,100,100],[58,37,97,100],[50,9,90,100],[50,28,100,100]],"mm":[0.4,2.1,5.7,9.4,12.8,16.2,19.6,20.4,17.6,17.3],"fin":[null,null,11,12,13,13,14,15,16,17],"ref":[null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04"],"cota":[1300,1600],"st":[9.1,7.0,5.2,4.5,5.8,5.9,5.1,6.2,4.6,5.7]},"Camagroc":{"s":[55,34,9,2,6,7,16,28,30,44],"f":[[100,100,100,55],[46,88,100,55],[5,57,100,55],[0,45,100,55],[1,68,100,100],[1,68,100,100],[5,56,100,100],[13,75,97,100],[21,47,90,100],[28,66,100,100]],"mm":[47.1,20.6,2.4,0.1,0.3,0.4,2.1,5.7,9.4,12.8],"fin":[24,25,null,null,null,null,null,16,17,18],"ref":["2026-10-19","2026-10-19",null,null,null,null,null,"2026-11-03","2026-11-03","2026-11-03"],"cota":[1300,1500],"st":[9.4,7.3,5.4,4.7,6.1,6.1,5.4,6.5,4.8,6.0]},"Fredolic":{"s":[10,23,40,53,62,71,79,78,67,74],"f":[[1,100,100,100],[7,100,100,100],[19,100,100,100],[31,100,100,100],[43,100,100,100],[54,100,100,100],[65,100,100,100],[68,100,97,100],[58,100,90,100],[58,100,100,100]],"mm":[0.4,2.1,5.7,9.4,12.8,16.2,19.6,20.4,17.6,17.3],"fin":[null,null,11,12,13,13,14,15,16,17],"ref":[null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04"],"cota":[1300,1600],"st":[9.1,7.0,5.2,4.5,5.8,5.9,5.1,6.2,4.6,5.7]},"Cep de pi negre":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[5,73,100,10],[14,38,100,10],[24,7,100,10],[32,0,100,10],[40,18,100,55],[49,18,100,55],[51,6,100,100],[44,25,97,100],[43,0,90,100],[81,16,100,100]],"mm":[2.1,5.7,9.4,12.8,16.2,19.6,20.4,17.6,17.3,32.3],"fin":[null,10,11,12,12,13,14,15,16,9],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-12"],"cota":[1400,1800],"st":[8.4,6.3,4.4,3.7,5.1,5.1,4.4,5.5,3.8,5.0]}},"meteo":[{"st":8.9,"sm":89,"tmin12":-3.8,"vent":100,"conf":"previsio"},{"st":6.8,"sm":59,"tmin12":-3.8,"vent":100,"conf":"previsio"},{"st":4.9,"sm":54,"tmin12":-3.8,"vent":100,"conf":"previsio"},{"st":4.2,"sm":51,"tmin12":-3.8,"vent":100,"conf":"previsio"},{"st":5.6,"sm":76,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":5.6,"sm":56,"tmin12":-1.1,"vent":100,"conf":"previsio"},{"st":4.9,"sm":45,"tmin12":-0.3,"vent":100,"conf":"previsio"},{"st":6.0,"sm":38,"tmin12":1.3,"vent":100,"conf":"previsio"},{"st":4.3,"sm":34,"tmin12":1.5,"vent":100,"conf":"previsio"},{"st":5.5,"sm":80,"tmin12":1.2,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5,0.0,0.0,4.9,6.5,0.2,0.0,0.0,0.0,1.5,0.9,8.9,49.1,0.1,0.1,2.9,0.6,0.5,0.0,0.0,2.0,11.0],"previst_des_de":21,"tmax":[9,9,8,7,8,9,11,11,8,9],"tmin":[5,3,2,2,2,3,2,3,2,1]}},{"id":5,"codi":"CASTELLBO","nom":"Alt Urgell - Vall de Castellbò","lat":42.36,"lon":1.3633,"minuts":105,"km":100,"alt":[900,1500],"bosc":"pi roig","orientacio":"mixta","acces":"Montferrer","notes":"Suele reportar actividad temprana en prensa. Mucha presión de recolección.","pendent":false,"especies":{"Pinetell":{"s":[2,14,18,24,45,43,38,46,34,48],"f":[[0,100,100,100],[3,100,95,100],[10,79,71,100],[17,81,68,100],[24,95,100,100],[31,85,87,100],[38,62,74,100],[41,82,84,100],[37,65,78,100],[42,86,100,100]],"mm":[0.0,1.0,3.4,5.9,8.4,10.8,13.3,14.3,12.8,14.5],"fin":[null,null,null,null,null,null,null,15,16,17],"ref":[null,null,null,null,null,null,null,"2026-11-04","2026-11-04","2026-11-04"],"cota":[900,1500],"st":[11.8,10.0,8.7,8.9,9.7,9.1,7.7,8.9,7.9,9.1]},"Llenega negra":{"s":[2,14,20,25,46,46,44,52,45,62],"f":[[0,100,100,100],[3,100,95,100],[10,100,71,100],[17,100,68,100],[24,100,100,100],[31,100,87,100],[38,100,74,100],[41,100,84,100],[37,100,78,100],[42,100,100,100]],"mm":[0.0,1.0,3.4,5.9,8.4,10.8,13.3,14.3,12.8,14.5],"fin":[null,null,null,null,null,null,null,15,16,17],"ref":[null,null,null,null,null,null,null,"2026-11-04","2026-11-04","2026-11-04"],"cota":[900,1200],"st":[12.5,10.8,9.5,9.6,10.5,9.8,8.5,9.7,8.6,9.9]},"Rovelló":{"s":[2,13,17,22,42,41,34,45,36,55],"f":[[0,100,100,100],[3,84,95,100],[10,62,71,100],[17,64,68,100],[24,79,100,100],[31,68,87,100],[38,45,74,100],[41,65,84,100],[37,48,78,100],[42,69,100,100]],"mm":[0.0,1.0,3.4,5.9,8.4,10.8,13.3,14.3,12.8,14.5],"fin":[null,null,null,null,null,null,null,15,16,17],"ref":[null,null,null,null,null,null,null,"2026-11-04","2026-11-04","2026-11-04"],"cota":[900,1100],"st":[12.8,11.0,9.7,9.9,10.7,10.1,8.7,9.9,8.9,10.1]},"Fredolic":{"s":[2,15,21,28,50,50,48,56,49,67],"f":[[0,70,100,100],[3,100,95,100],[11,100,71,100],[20,100,68,100],[28,100,100,100],[36,100,87,100],[44,100,74,100],[48,100,84,100],[43,100,78,100],[48,100,100,100]],"mm":[0.0,1.0,3.4,5.9,8.4,10.8,13.3,14.3,12.8,14.5],"fin":[null,null,11,12,12,13,14,15,16,17],"ref":[null,null,"2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04","2026-11-04"],"cota":[900,1500],"st":[11.8,10.0,8.7,8.9,9.7,9.1,7.7,8.9,7.9,9.1]}},"meteo":[{"st":11.8,"sm":71,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":10.0,"sm":37,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":8.7,"sm":25,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":8.9,"sm":23,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":9.7,"sm":45,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":9.1,"sm":33,"tmin12":-0.4,"vent":100,"conf":"previsio"},{"st":7.7,"sm":26,"tmin12":0.5,"vent":100,"conf":"previsio"},{"st":8.9,"sm":32,"tmin12":1.5,"vent":100,"conf":"previsio"},{"st":7.9,"sm":28,"tmin12":1.5,"vent":100,"conf":"previsio"},{"st":9.1,"sm":50,"tmin12":1.5,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,3.3,4.4,0.5,0.0,0.0,0.0,1.4,1.0,11.3,23.6,0.0,0.7,1.5,0.5,1.1,1.5,2.5,2.1,7.7],"previst_des_de":21,"tmax":[15,14,13,13,14,14,16,14,14,16],"tmin":[8,5,4,6,4,2,2,5,4,2]}},{"id":6,"codi":"CADI-BRG","nom":"Cadí - Berguedà","lat":42.2767,"lon":1.7767,"minuts":120,"km":130,"alt":[1200,1800],"bosc":"pi roig, faig","orientacio":"obaga","acces":"Bagà / Gósol","notes":"Faig y pi roig juntos: amplía el abanico de especies.","pendent":false,"especies":{"Cep":{"s":[6,9,10,3,23,23,4,30,6,34],"f":[[7,70,100,55],[18,39,100,55],[29,13,100,55],[40,0,100,55],[51,23,100,55],[62,16,94,55],[62,0,84,55],[54,15,78,100],[50,0,75,100],[66,14,100,100]],"mm":[2.9,7.2,11.6,15.9,20.3,24.6,24.9,21.6,20.2,26.3],"fin":[null,10,11,12,13,14,14,15,16,9],"ref":[null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-04","2026-11-04","2026-11-04","2026-11-12"],"cota":[1200,1700],"st":[10.2,8.3,6.8,6.0,7.4,7.0,5.6,6.9,5.6,6.8]},"Trompeta negra":{"s":[18,5,4,4,11,30,30,36,32,50],"f":[[13,100,100,55],[2,84,100,55],[1,59,100,55],[1,45,100,55],[6,68,100,55],[16,62,94,100],[26,39,84,100],[35,61,78,100],[45,39,75,100],[55,60,100,100]],"mm":[5.9,0.7,0.4,0.6,2.9,7.2,11.6,15.9,20.3,24.6],"fin":[23,null,null,null,null,14,15,16,17,18],"ref":["2026-10-20",null,null,null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[1200,1400],"st":[11.0,9.1,7.5,6.7,8.1,7.7,6.4,7.7,6.3,7.6]},"Camagroc":{"s":[100,70,32,9,8,8,17,28,32,54],"f":[[100,100,100,100],[52,100,100,100],[13,88,100,100],[2,74,100,100],[1,98,100,100],[1,91,94,100],[6,68,84,100],[16,90,78,100],[26,68,75,100],[35,89,100,100]],"mm":[52.0,23.5,5.9,0.7,0.4,0.6,2.9,7.2,11.6,15.9],"fin":[24,25,25,null,null,null,null,16,17,18],"ref":["2026-10-19","2026-10-19","2026-10-20",null,null,null,null,"2026-11-03","2026-11-03","2026-11-03"],"cota":[1200,1500],"st":[10.7,8.8,7.3,6.5,7.9,7.5,6.1,7.4,6.1,7.3]},"Rossinyol":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[15,79,100,10],[2,47,100,10],[1,21,100,10],[2,8,100,10],[7,31,100,10],[18,24,94,55],[29,2,84,55],[40,24,78,100],[51,1,75,100],[62,22,100,100]],"mm":[5.9,0.7,0.4,0.6,2.9,7.2,11.6,15.9,20.3,24.6],"fin":[23,null,null,null,null,14,15,16,17,18],"ref":["2026-10-20",null,null,null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[1200,1500],"st":[10.7,8.8,7.3,6.5,7.9,7.5,6.1,7.4,6.1,7.3]}},"meteo":[{"st":10.2,"sm":79,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":8.3,"sm":49,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.8,"sm":44,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":6.0,"sm":40,"tmin12":-2.7,"vent":100,"conf":"previsio"},{"st":7.4,"sm":46,"tmin12":-2.3,"vent":100,"conf":"previsio"},{"st":7.0,"sm":37,"tmin12":-1.6,"vent":100,"conf":"previsio"},{"st":5.6,"sm":31,"tmin12":-1.1,"vent":100,"conf":"previsio"},{"st":6.9,"sm":28,"tmin12":0.2,"vent":100,"conf":"previsio"},{"st":5.6,"sm":26,"tmin12":0.9,"vent":100,"conf":"previsio"},{"st":6.8,"sm":54,"tmin12":0.9,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.4,0.2,0.0,0.0,7.1,6.2,1.4,0.0,0.0,0.0,1.1,0.4,8.7,24.5,0.0,0.0,0.6,0.0,0.3,0.3,0.3,1.7,9.7],"previst_des_de":21,"tmax":[12,10,11,10,11,11,12,12,10,11],"tmin":[7,4,4,3,2,2,1,2,2,1]}},{"id":7,"codi":"VIROS","nom":"Pallars Sobirà - Vallferrera","lat":42.5433,"lon":1.34,"minuts":135,"km":130,"alt":[1300,1800],"bosc":"pi negre, avet","orientacio":"mixta","acces":"Alins / Bosc de Virós","notes":"Cota alta. Arranca antes y se cierra antes por heladas.","pendent":false,"especies":{"Cep de pi negre":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[6,66,100,55],[13,43,85,55],[20,24,76,55],[28,25,73,55],[35,24,100,55],[42,14,90,55],[40,4,77,55],[36,25,70,100],[42,7,68,100],[57,11,100,100]],"mm":[2.4,5.2,8.1,11.0,14.0,16.9,16.1,14.5,16.6,22.8],"fin":[null,null,null,null,null,null,15,16,17,10],"ref":[null,null,null,null,null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-11"],"cota":[1400,1800],"st":[8.0,6.6,5.4,5.5,5.4,4.8,4.2,5.5,4.4,4.6]},"Cep":{"s":[5,5,1,2,4,4,3,6,5,7],"f":[[6,41,100,55],[13,18,85,55],[20,0,76,55],[28,0,73,55],[35,0,100,55],[42,0,90,55],[40,0,77,55],[36,0,70,100],[42,0,68,100],[57,0,100,100]],"mm":[2.4,5.2,8.1,11.0,14.0,16.9,16.1,14.5,16.6,22.8],"fin":[null,null,null,null,null,null,15,16,17,10],"ref":[null,null,null,null,null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-11"],"cota":[1300,1700],"st":[8.5,7.1,5.9,6.0,5.9,5.3,4.7,6.0,4.9,5.1]},"Fredolic":{"s":[8,21,29,36,58,59,56,50,46,72],"f":[[1,100,100,100],[8,100,85,100],[17,100,76,100],[27,100,73,100],[37,100,100,100],[46,100,90,100],[56,100,77,100],[54,100,70,100],[48,100,68,100],[55,100,100,100]],"mm":[0.3,2.4,5.2,8.1,11.0,14.0,16.9,16.1,14.5,16.6],"fin":[null,null,11,12,13,14,15,16,17,18],"ref":[null,null,"2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03","2026-11-03"],"cota":[1300,1600],"st":[8.7,7.3,6.2,6.2,6.2,5.6,5.0,6.3,5.2,5.4]}},"meteo":[{"st":8.0,"sm":59,"tmin12":-2.6,"vent":100,"conf":"previsio"},{"st":6.6,"sm":32,"tmin12":-2.6,"vent":100,"conf":"previsio"},{"st":5.4,"sm":27,"tmin12":-2.6,"vent":100,"conf":"previsio"},{"st":5.5,"sm":26,"tmin12":-2.5,"vent":100,"conf":"previsio"},{"st":5.4,"sm":47,"tmin12":-1.8,"vent":100,"conf":"previsio"},{"st":4.8,"sm":35,"tmin12":-1.8,"vent":100,"conf":"previsio"},{"st":4.2,"sm":28,"tmin12":-1.7,"vent":100,"conf":"previsio"},{"st":5.5,"sm":24,"tmin12":-0.3,"vent":100,"conf":"previsio"},{"st":4.4,"sm":23,"tmin12":-0.3,"vent":100,"conf":"previsio"},{"st":4.6,"sm":48,"tmin12":-0.3,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.0,0.0,0.3,0.0,0.0,0.0,0.0,0.0,0.1,0.0,0.0,7.1,2.2,0.5,0.0,0.0,0.0,1.8,2.0,12.8,13.3,0.0,0.2,1.7,0.0,2.3,0.2,2.4,1.9,7.9],"previst_des_de":21,"tmax":[10,9,8,7,10,9,12,10,8,10],"tmin":[5,3,3,2,1,0,0,0,0,0]}},{"id":8,"codi":"MERANGES","nom":"Cerdanya - Meranges","lat":42.47,"lon":1.76,"minuts":135,"km":140,"alt":[1500,2000],"bosc":"pi negre","orientacio":"mixta","acces":"Meranges","notes":"El CTFC hace aquí seguimiento semanal con sensores de suelo. Si se publica, validación directa.","pendent":false,"especies":{"Cep de pi negre":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[2,0,100,10],[6,0,100,10],[9,0,85,10],[13,0,72,10],[18,0,100,10],[22,0,96,10],[25,0,88,10],[22,0,74,10],[25,0,62,10],[42,0,70,10]],"mm":[0.9,2.3,3.7,5.4,7.0,8.7,9.8,9.0,10.0,16.8],"fin":[null,null,null,null,null,null,null,null,16,9],"ref":[null,null,null,null,null,null,null,null,"2026-11-04","2026-11-12"],"cota":[1500,2000],"st":[3.8,2.0,0.9,0.5,1.0,0.6,-0.4,0.9,-0.6,-0.0]},"Cep":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[2,0,100,10],[6,0,100,10],[9,0,85,10],[13,0,72,10],[18,0,100,10],[22,0,96,10],[25,0,88,10],[22,0,74,10],[25,0,62,10],[42,0,70,10]],"mm":[0.9,2.3,3.7,5.4,7.0,8.7,9.8,9.0,10.0,16.8],"fin":[null,null,null,null,null,null,null,null,16,9],"ref":[null,null,null,null,null,null,null,null,"2026-11-04","2026-11-12"],"cota":[1500,1700],"st":[4.6,2.8,1.7,1.3,1.7,1.3,0.3,1.6,0.2,0.7]},"Pinetell":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[2,14,100,10],[3,0,100,10],[6,0,85,10],[11,0,72,10],[15,0,100,10],[20,0,96,10],[25,0,88,10],[28,0,74,10],[26,0,62,10],[29,0,70,10]],"mm":[0.7,0.9,2.3,3.7,5.4,7.0,8.7,9.8,9.0,10.0],"fin":[null,null,null,null,null,null,null,null,null,17],"ref":[null,null,null,null,null,null,null,null,null,"2026-11-04"],"cota":[1500,1600],"st":[4.8,3.0,1.9,1.5,2.0,1.6,0.6,1.9,0.4,1.0]}},"meteo":[{"st":3.8,"sm":89,"tmin12":-8.4,"vent":100,"conf":"previsio"},{"st":2.0,"sm":52,"tmin12":-8.4,"vent":100,"conf":"previsio"},{"st":0.9,"sm":32,"tmin12":-8.4,"vent":100,"conf":"previsio"},{"st":0.5,"sm":25,"tmin12":-8.4,"vent":100,"conf":"previsio"},{"st":1.0,"sm":42,"tmin12":-7.7,"vent":100,"conf":"previsio"},{"st":0.6,"sm":38,"tmin12":-6.4,"vent":100,"conf":"previsio"},{"st":-0.4,"sm":34,"tmin12":-4.2,"vent":100,"conf":"previsio"},{"st":0.9,"sm":26,"tmin12":-4.4,"vent":100,"conf":"previsio"},{"st":-0.6,"sm":20,"tmin12":-4.4,"vent":100,"conf":"previsio"},{"st":-0.0,"sm":24,"tmin12":-8.8,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,0.1,0.0,0.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6,3.5,0.3,0.0,0.0,0.0,1.5,0.6,6.8,18.7,0.0,0.7,0.9,0.0,1.7,1.2,1.6,1.6,8.8],"previst_des_de":21,"tmax":[6,3,3,3,4,5,5,4,3,2],"tmin":[0,-2,-2,-3,-3,-3,-2,-4,-4,-9]}},{"id":9,"codi":"ARAN-BX","nom":"Baish Aran","lat":42.79,"lon":0.7,"minuts":150,"km":155,"alt":[900,1500],"bosc":"faig, avet","orientacio":"mixta","acces":"Bossòst","notes":"Hedge atlántico: llueve cuando en Lleida no llueve.","pendent":false,"especies":{"Cep":{"s":[5,6,2,2,2,2,1,4,1,1],"f":[[26,58,40,55],[19,36,70,55],[12,13,34,55],[8,8,32,55],[5,24,40,55],[3,13,38,55],[4,0,50,100],[6,7,52,100],[10,0,35,100],[17,0,67,55]],"mm":[10.4,7.6,5.0,3.3,2.1,1.3,1.6,2.3,4.0,6.7],"fin":[15,16,null,null,null,null,null,null,null,11],"ref":["2026-10-28","2026-10-28",null,null,null,null,null,null,null,"2026-11-10"],"cota":[900,1500],"st":[9.5,8.2,6.8,6.5,7.5,6.8,5.2,6.4,5.1,4.9]},"Rossinyol":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[50,58,40,10],[46,36,70,10],[41,13,34,10],[36,8,32,10],[26,24,40,10],[19,13,38,10],[12,0,50,100],[8,7,52,100],[5,0,35,100],[3,0,67,55]],"mm":[20.2,18.3,16.5,14.3,10.4,7.6,5.0,3.3,2.1,1.3],"fin":[18,19,17,18,19,20,null,null,null,null],"ref":["2026-10-25","2026-10-25","2026-10-28","2026-10-28","2026-10-28","2026-10-28",null,null,null,null],"cota":[900,1500],"st":[9.5,8.2,6.8,6.5,7.5,6.8,5.2,6.4,5.1,4.9]},"Trompeta negra":{"s":[14,21,9,8,8,6,10,9,4,5],"f":[[45,96,40,55],[41,74,70,55],[37,50,34,55],[32,46,32,55],[23,62,40,55],[17,51,38,55],[11,24,50,100],[7,44,52,100],[5,23,35,100],[3,19,67,100]],"mm":[20.2,18.3,16.5,14.3,10.4,7.6,5.0,3.3,2.1,1.3],"fin":[18,19,17,18,null,null,null,null,null,null],"ref":["2026-10-25","2026-10-25","2026-10-28","2026-10-28",null,null,null,null,null,null],"cota":[900,1400],"st":[9.8,8.4,7.0,6.8,7.7,7.1,5.4,6.6,5.4,5.1]},"Camagroc":{"s":[33,50,20,18,22,19,18,18,8,13],"f":[[71,100,40,100],[56,100,70,100],[45,80,34,100],[41,75,32,100],[37,91,40,100],[32,80,38,100],[23,53,50,100],[17,73,52,100],[11,52,35,100],[7,48,67,100]],"mm":[31.8,25.1,20.2,18.3,16.5,14.3,10.4,7.6,5.0,3.3],"fin":[24,21,20,21,19,20,null,null,null,null],"ref":["2026-10-19","2026-10-23","2026-10-25","2026-10-25","2026-10-28","2026-10-28",null,null,null,null],"cota":[900,1500],"st":[9.5,8.2,6.8,6.5,7.5,6.8,5.2,6.4,5.1,4.9]}},"meteo":[{"st":9.5,"sm":8,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":8.2,"sm":24,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":6.8,"sm":5,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":6.5,"sm":4,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":7.5,"sm":8,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":6.8,"sm":7,"tmin12":-2.1,"vent":100,"conf":"previsio"},{"st":5.2,"sm":13,"tmin12":0.3,"vent":100,"conf":"previsio"},{"st":6.4,"sm":15,"tmin12":1.2,"vent":100,"conf":"previsio"},{"st":5.1,"sm":5,"tmin12":2.7,"vent":100,"conf":"previsio"},{"st":4.9,"sm":22,"tmin12":-1.3,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,3.4,0.4,3.2,1.5,1.7,3.1,0.0,0.0,0.0,0.0,0.1,0.2,0.4,0.1,0.0,0.0,0.0,0.5,2.4,3.6,3.4,4.6,0.2,0.1,0.5,4.7,5.2,3.4,2.3,7.5],"previst_des_de":21,"tmax":[12,9,13,11,12,14,11,10,11,10],"tmin":[7,4,5,4,5,4,3,4,3,-1]}},{"id":10,"codi":"SAULT","nom":"Plateau de Sault (Aude/Ariège)","lat":42.82,"lon":1.95,"minuts":180,"km":175,"alt":[1000,1400],"bosc":"faig, avet","orientacio":"mixta","acces":"Belcaire","notes":"Segundo hedge atlántico. Verificar normativa francesa de recolección (ONF).","pendent":false,"especies":{"Cep":{"s":[8,13,8,8,11,12,19,15,6,6],"f":[[31,70,31,100],[27,48,62,100],[23,18,52,100],[22,12,47,100],[22,21,45,100],[22,23,44,100],[21,12,82,100],[17,28,61,100],[14,9,40,100],[11,9,59,100]],"mm":[12.3,10.8,9.3,8.9,8.7,8.7,8.4,6.9,5.6,4.4],"fin":[15,16,17,12,13,null,null,null,null,null],"ref":["2026-10-28","2026-10-28","2026-10-28","2026-11-03","2026-11-03",null,null,null,null,null],"cota":[1000,1400],"st":[10.2,8.9,7.1,6.7,7.2,7.4,6.7,7.7,6.5,6.6]},"Trompeta negra":{"s":[18,32,24,20,18,17,28,20,11,15],"f":[[38,100,31,100],[35,81,62,100],[34,52,52,100],[33,45,47,100],[27,54,45,100],[24,56,44,100],[21,46,82,100],[20,62,61,100],[19,42,40,100],[19,42,59,100]],"mm":[17.2,15.8,15.4,14.9,12.3,10.8,9.3,8.9,8.7,8.7],"fin":[18,16,17,18,19,20,21,null,null,null],"ref":["2026-10-25","2026-10-28","2026-10-28","2026-10-28","2026-10-28","2026-10-28","2026-10-28",null,null,null],"cota":[1000,1400],"st":[10.2,8.9,7.1,6.7,7.2,7.4,6.7,7.7,6.5,6.6]},"Rossinyol":{"s":[0,0,0,0,0,0,0,0,0,0],"f":[[43,70,31,55],[40,48,62,55],[38,18,52,55],[37,12,47,55],[31,21,45,55],[27,23,44,100],[23,12,82,100],[22,28,61,100],[22,9,40,100],[22,9,59,100]],"mm":[17.2,15.8,15.4,14.9,12.3,10.8,9.3,8.9,8.7,8.7],"fin":[18,16,17,18,19,20,21,16,17,null],"ref":["2026-10-25","2026-10-28","2026-10-28","2026-10-28","2026-10-28","2026-10-28","2026-10-28","2026-11-03","2026-11-03",null],"cota":[1000,1400],"st":[10.2,8.9,7.1,6.7,7.2,7.4,6.7,7.7,6.5,6.6]}},"meteo":[{"st":10.2,"sm":3,"tmin12":-0.9,"vent":100,"conf":"previsio"},{"st":8.9,"sm":19,"tmin12":-0.9,"vent":100,"conf":"previsio"},{"st":7.1,"sm":15,"tmin12":-0.9,"vent":100,"conf":"previsio"},{"st":6.7,"sm":12,"tmin12":-0.9,"vent":100,"conf":"previsio"},{"st":7.2,"sm":11,"tmin12":-0.9,"vent":100,"conf":"previsio"},{"st":7.4,"sm":10,"tmin12":1.4,"vent":100,"conf":"previsio"},{"st":6.7,"sm":31,"tmin12":2.2,"vent":100,"conf":"previsio"},{"st":7.7,"sm":19,"tmin12":2.2,"vent":100,"conf":"previsio"},{"st":6.5,"sm":8,"tmin12":2.2,"vent":100,"conf":"previsio"},{"st":6.6,"sm":18,"tmin12":2.2,"vent":100,"conf":"previsio"}],"pluja":{"d0":"2026-10-22","mm":[0.0,1.5,0.0,3.5,0.5,0.9,5.0,0.0,0.0,0.0,0.0,0.0,3.1,2.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.3,2.5,0.3,0.0,0.2,2.8,7.8,0.6,0.0,4.0],"previst_des_de":21,"tmax":[13,10,13,15,12,14,10,12,11,10],"tmin":[9,4,3,5,5,3,2,4,3,3]}}],"avistaments":[{"data":"2026-11-07","zona_id":11,"zona":"Serra de Rubió - Castellfollit del Boix","qui":"Ivan","notes":"Un plato. «Empiezan en Castellfollit».","especies":[{"nom":"Rovelló","index":71},{"nom":"Fredolic","index":null}]},{"data":"2026-11-07","zona_id":12,"zona":"Sobrecastell - Cornudella de Baliera","qui":"Agustí","notes":"Dos cestas, en la misma zona que Marcos el día 31.","especies":[{"nom":"Rovelló","index":null}]},{"data":"2026-11-04","zona_id":11,"zona":"Serra de Rubió - Castellfollit del Boix","qui":"Ivan","notes":"«Ya ha arrancado».","especies":[{"nom":"Llenega negra","index":97},{"nom":"Rovelló","index":83},{"nom":"Fredolic","index":null}]},{"data":"2026-10-31","zona_id":12,"zona":"Sobrecastell - Cornudella de Baliera","qui":"Marcos","notes":"Una bandeja llena. Primera cita de la zona.","especies":[{"nom":"Rovelló","index":null}]}]}</script>
+<script>
+(function(){
+var GEO={"lat0": 41.35, "lat1": 42.95, "lon0": 0.25, "lon1": 2.3, "w": 880, "h": 926}, VIEWS=['resumen','dias','mapa','avistamientos'];
+var TOWNS=[['Lleida',41.617,.62],['Balaguer',41.79,.805],['Tremp',42.167,.895],['Sort',42.413,1.13],['Vielha',42.702,.795],['El Pont de Suert',42.408,.74],
+  ['Benabarre',42.11,.482],['La Seu d\'Urgell',42.358,1.456],['Andorra la Vella',42.507,1.522],['Puigcerdà',42.432,1.928],['Berga',42.103,1.845],
+  ['Solsona',41.994,1.517],['Ponts',41.916,1.186],['Manresa',41.729,1.826],['Igualada',41.58,1.617]];
+var WD=['dom','lun','mar','mié','jue','vie','sáb'], MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+var D=null, st={day:0,viaje:0,esp:'',orden:'score',open:null,sel:null};
+try{var s0=JSON.parse(localStorage.getItem('bolets2')||'{}');['viaje','esp','orden'].forEach(function(k){if(k in s0)st[k]=s0[k]})}catch(e){}
+function save(){try{localStorage.setItem('bolets2',JSON.stringify({viaje:st.viaje,esp:st.esp,orden:st.orden}))}catch(e){}}
+function $(id){return document.getElementById(id)}
+function esc(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function dt(iso){var p=iso.split('-');return new Date(+p[0],p[1]-1,+p[2])}
+function dcorta(iso){var d=dt(iso);return WD[d.getDay()]+' '+d.getDate()+' '+MES[d.getMonth()]}
+function cls(v){return v==null?'n':v>=65?'g':v>=40?'w':'b'}
+function col(v){return v==null?'var(--new)':v>=65?'var(--good)':v>=40?'var(--warn)':'var(--bad)'}
+function corto(z){return z.nom.split(' - ')[0].replace(/\s*\(.*\)/,'')}
+function viaje(z){if(z.minuts==null)return '';return Math.floor(z.minuts/60)+' h '+('0'+z.minuts%60).slice(-2)+(z.km?' · '+z.km+' km':'')}
+function zona(id){return D.zones.filter(function(z){return z.id==id})[0]}
+function isWe(i){var g=dt(D.dies[i]).getDay();return g===0||g===6}
+// mejor especie de una zona un día (o la especie filtrada si la zona la tiene)
+function best(z,i,esp){
+  if(z.pendent)return {s:null,nom:null};
+  if(esp&&z.especies[esp])return {s:z.especies[esp].s[i],nom:esp};
+  var r={s:-1,nom:null};Object.keys(z.especies).forEach(function(k){var v=z.especies[k].s[i];if(v>r.s)r={s:v,nom:k}});return r;
+}
+function sightingsOf(id){return D.avistaments.filter(function(a){return a.zona_id==id})}
+
+/* ---------- resumen ---------- */
+function weekend(){var a=-1,b=-1;D.dies.forEach(function(x,i){var g=dt(x).getDay();if(g===6&&a<0)a=i;if(g===0&&b<0)b=i});return [a,b]}
+function renderResumen(){
+  var we=weekend(), zs=D.zones.filter(function(z){return !z.pendent});
+  var rank=zs.map(function(z){var a=we[0]<0?null:best(z,we[0]),b=we[1]<0?null:best(z,we[1]);
+    return {z:z,a:a,b:b,m:Math.max(a?a.s:-1,b?b.s:-1)}}).sort(function(x,y){return y.m-x.m});
+  var h='<span></span>'+we.map(function(i){return '<span class="hd">'+(i<0?'':WD[dt(D.dies[i]).getDay()]+' '+dt(D.dies[i]).getDate())+'</span>'}).join('');
+  rank.slice(0,3).forEach(function(r){
+    var i=(r.b&&r.b.s>(r.a?r.a.s:-1))?we[1]:we[0], bs=best(r.z,i);
+    h+='<button class="nm" data-go="'+r.z.id+'" data-day="'+i+'"><b>'+esc(r.z.nom)+'</b><span>'+esc(bs.nom)+' · '+esc(viaje(r.z))+'</span></button>'+
+      [r.a,r.b].map(function(x){return x?'<span class="box '+cls(x.s)+'">'+x.s+'</span>':'<span></span>'}).join('')});
+  $('wk').innerHTML=h;
+  // titular
+  var top=rank[0], all={s:-1};
+  zs.forEach(function(z){D.dies.forEach(function(x,i){var b=best(z,i);if(b.s>all.s)all={s:b.s,z:z,i:i}})});
+  var lead='';
+  if(top){var wi=(top.b&&top.b.s>(top.a?top.a.s:-1))?we[1]:we[0];
+    lead=top.m<25?'Ninguna zona está en condiciones este fin de semana.':corto(top.z)+' es la mejor opción del fin de semana: '+top.m+' el '+dcorta(D.dies[wi])+'.';
+    if(all.s>=top.m+10)lead+=all.i===0?' Hoy mismo '+corto(all.z)+' marca '+all.s+'.':' Lo mejor de los diez días llega el '+dcorta(D.dies[all.i])+': '+corto(all.z)+' sube a '+all.s+'.'}
+  $('lead').textContent=lead;
+  // rejilla
+  var t='<tr><th></th>'+D.dies.map(function(x,i){var d=dt(x);return '<th class="'+(isWe(i)?'we':'')+'">'+WD[d.getDay()].charAt(0).toUpperCase()+'<b>'+d.getDate()+'</b></th>'}).join('')+'</tr>';
+  D.zones.forEach(function(z){
+    t+='<tr><td class="z" title="'+esc(z.nom)+'">'+esc(corto(z))+'</td>'+D.dies.map(function(x,i){var b=best(z,i);
+      return '<td class="c"><button class="'+(z.pendent?'p':cls(b.s))+'" data-go="'+z.id+'" data-day="'+i+'" title="'+esc(corto(z)+', '+dcorta(x)+(b.nom?': '+b.nom+' '+b.s:': sin datos todavía'))+'">'+(z.pendent?'·':b.s)+'</button></td>'}).join('')+'</tr>'});
+  $('hm').innerHTML=t;
+  // avisos
+  var av=[];
+  rank.slice(0,4).forEach(function(r){var z=r.z,i=we[0]<0?0:we[0],b=best(z,i),e=z.especies[b.nom],m=z.meteo[i]||{};
+    if(e&&e.f[i][3]<100&&m.tmin12!=null)av.push('<b>Helada.</b> '+esc(corto(z))+': mínima de '+m.tmin12+' °C en los últimos días. Puede haber quemado lo que hubiera salido.');
+    if(m.vent!=null&&m.vent<80)av.push('<b>Viento seco.</b> '+esc(corto(z))+': viento fuerte reciente, lo que sale se deshidrata rápido.')});
+  var est=-1;zs.slice(0,1).forEach(function(z){z.meteo.forEach(function(m,i){if(est<0&&m&&m.conf==='estimat')est=i})});
+  if(est>=0)av.push('<b>Suelo estimado.</b> Desde el '+dcorta(D.dies[est])+' la temperatura y la humedad del suelo son estimadas, no del modelo. Esos días son orientativos.');
+  D.zones.filter(function(z){return z.pendent}).forEach(function(z){av.push('<b>'+esc(corto(z))+'.</b> Zona nueva, todavía sin previsión: falta la primera descarga de meteo.')});
+  $('avis').innerHTML=av.map(function(a){return '<div class="avis">'+a+'</div>'}).join('');$('avis-blk').hidden=!av.length;
+  var c=D.context||{},p=[];
+  if(c.pct_pluja!=null)p.push('<p><b>Lluvia.</b> La acumulada desde junio está al '+c.pct_pluja+'% de lo normal'+(c.pct_pluja>110?', por encima.':c.pct_pluja<90?', por debajo.':', en la media.')+'</p>');
+  if(c.analegs&&c.analegs.length)p.push('<p><b>Años parecidos.</b> '+c.analegs.join(', ')+'.</p>');
+  p.push('<p><b>Fiabilidad.</b> Hasta una semana vista el índice se apoya en lluvia ya caída. Más allá depende de la previsión.</p>');
+  $('ctx').innerHTML=p.join('');
+}
+
+/* ---------- día a día ---------- */
+function dayChips(el){
+  el.innerHTML=D.dies.map(function(x,i){var d=dt(x),m=-1;D.zones.forEach(function(z){if(st.viaje&&z.minuts>st.viaje)return;var b=best(z,i,st.esp);if(b.s!=null&&b.s>m)m=b.s});
+    return '<button class="day'+(isWe(i)?' we':'')+'" data-i="'+i+'" aria-pressed="'+(st.day===i)+'" aria-label="'+esc(dcorta(x))+(m>=0?', mejor '+m:'')+'"><small>'+WD[d.getDay()]+'</small><b>'+d.getDate()+'</b><i style="background:'+(m<0?'var(--line)':col(m))+'"></i></button>'}).join('');
+}
+function chips(el,opts,key){
+  el.innerHTML=opts.map(function(o){return '<button class="chip" data-k="'+key+'" data-v="'+esc(o[0])+'" aria-pressed="'+(String(st[key])===String(o[0]))+'">'+esc(o[1])+'</button>'}).join('');
+}
+function rainSvg(z){
+  var P=z.pluja;if(!P)return '';
+  var n=P.mm.length,W=320,H=104,x0=4,bw=(W-8)/n,base=80,mx=Math.max(10,Math.max.apply(null,P.mm.map(function(v){return v||0}))),h='';
+  h+='<line x1="'+x0+'" y1="'+base+'" x2="'+(W-4)+'" y2="'+base+'" stroke="var(--line)"/>';
+  P.mm.forEach(function(v,k){if(!v)return;var bh=Math.max(1.5,(v/mx)*62),x=x0+k*bw+1;
+    h+='<rect x="'+x.toFixed(1)+'" y="'+(base-bh).toFixed(1)+'" width="'+(bw-2).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="var(--rain)" opacity="'+(k>=P.previst_des_de?.45:1)+'"/>'});
+  var xt=x0+P.previst_des_de*bw;
+  h+='<line x1="'+xt+'" y1="10" x2="'+xt+'" y2="'+(base+4)+'" stroke="var(--muted)" stroke-dasharray="3 3"/><text x="'+(xt+3)+'" y="16">hoy</text>';
+  var xs=x0+(P.previst_des_de+st.day)*bw+bw/2;
+  h+='<path d="M'+(xs-4)+' '+(base+9)+'h8l-4 -6z" fill="var(--ink)"/>';
+  h+='<text x="'+x0+'" y="'+(H-3)+'">'+dcorta(P.d0)+'</text><text x="'+(W-4)+'" y="'+(H-3)+'" text-anchor="end">'+dcorta(D.dies[D.dies.length-1])+'</text>';
+  h+='<text x="'+x0+'" y="9">máx. '+String(mx.toFixed(0))+' mm</text>';
+  return '<div><div class="dt">Lluvia: últimas tres semanas y prevista</div><svg class="rain" viewBox="0 0 '+W+' '+H+'" data-z="'+z.id+'" role="img" aria-label="Lluvia diaria">'+h+'</svg>'+
+    '<div class="legend" style="margin-top:4px"><span style="--c:var(--rain)">caída</span><span style="--c:var(--rain);opacity:.6">prevista</span><span class="rd" style="margin-left:auto" data-rd></span></div></div>';
+}
+function detail(z,i){
+  var h='<div class="detail">';
+  if(z.pendent){
+    h+='<div class="note">Zona nueva: todavía no tiene previsión porque falta la primera descarga de meteo en la Raspberry. '+esc(z.notes||'')+'</div>';
+  }else{
+    var b=best(z,i,st.esp),e=z.especies[b.nom],m=z.meteo[i]||{},f=e.f[i];
+    h+='<div><div class="dt">Especies el '+esc(dcorta(D.dies[i]))+'</div><div class="bars">'+Object.keys(z.especies).sort(function(a,c){return z.especies[c].s[i]-z.especies[a].s[i]}).map(function(k){var v=z.especies[k].s[i];
+      return '<span>'+esc(k)+'</span><span class="bar" style="--c:'+col(v)+'"><i style="width:'+v+'%"></i></span><span class="v">'+v+'</span>'}).join('')+'</div></div>';
+    var why=[['Lluvia útil',e.mm[i]!=null?String(e.mm[i]).replace('.',',')+' mm':'sin dato',f[0]],['Suelo en esa cota',e.st&&e.st[i]!=null?String(e.st[i]).replace('.',',')+' °C':'sin dato',f[1]],
+      ['Humedad del suelo',m.sm!=null?'percentil '+m.sm:'sin dato',f[2]],['Heladas',m.tmin12!=null?'mínima reciente '+String(m.tmin12).replace('.',',')+' °C':'sin dato',f[3]]];
+    h+='<div><div class="dt">Por qué: '+esc(b.nom)+' '+b.s+'</div><div class="why">'+why.map(function(w){return '<div><b>'+w[0]+'</b><span>'+esc(w[1])+'</span><span class="bar" style="--c:'+col(w[2])+'"><i style="width:'+(w[2]==null?0:w[2])+'%"></i></span></div>'}).join('')+'</div>'+
+      '<div class="note" style="margin-top:8px">'+(e.fin[i]!=null?'Lluvia de referencia: '+esc(dcorta(e.ref[i]))+', '+e.fin[i]+' días antes.':'Sin lluvia útil en la ventana de esta especie.')+
+      (m.conf==='estimat'?' Suelo estimado, menos fiable.':'')+'</div></div>';
+    h+=rainSvg(z);
+    var fa=[];if(e.cota)fa.push('Cota <b>'+e.cota[0]+'-'+e.cota[1]+' m</b>');
+    if(z.pluja&&z.pluja.tmax[i]!=null)fa.push('Ese día <b>'+z.pluja.tmin[i]+' / '+z.pluja.tmax[i]+' °C</b>');
+    fa.push('Bosque <b>'+esc(z.bosc)+'</b>');fa.push('Acceso <b>'+esc(z.acces)+'</b>');
+    h+='<div class="facts">'+fa.map(function(x){return '<span>'+x+'</span>'}).join('')+'</div>';
+  }
+  sightingsOf(z.id).forEach(function(a){h+='<div class="seen"><b>'+esc(a.qui)+'</b>, '+esc(dcorta(a.data))+': '+esc(a.especies.map(function(s){return s.nom}).join(', '))+'. '+esc(a.notes||'')+'</div>'});
+  var q=z.lat+','+z.lon;
+  h+='<div class="links"><a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin='+D.origen.lat+','+D.origen.lon+'&destination='+q+'">Cómo llegar</a>'+
+     '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+q+'">Ver en Google Maps</a></div>';
+  return h+'</div>';
+}
+function card(z,open){
+  var i=st.day,b=best(z,i,st.esp),n=sightingsOf(z.id).length,m=z.meteo[i]||{};
+  var meta=z.pendent?'Zona nueva · '+viaje(z):(b.s<25?'flojo':b.nom)+' · '+viaje(z);
+  if(n)meta+=' · '+n+(n>1?' citas':' cita');
+  var strip=z.pendent?'':'<span class="strip" aria-hidden="true">'+D.dies.map(function(x,k){var v=best(z,k,st.esp).s;return '<i class="'+(k===i?'on':'')+'" style="height:'+Math.max(2,v*.22)+'px;--c:'+col(v)+'"></i>'}).join('')+'</span>';
+  return '<div class="zone"><button class="zh" aria-expanded="'+open+'" data-id="'+z.id+'"><span class="nm">'+esc(z.nom)+'</span>'+
+    '<span class="box '+cls(b.s)+'">'+(z.pendent?'Nueva':b.s)+'</span><span class="meta">'+esc(meta)+'</span>'+strip+'</button>'+(open?detail(z,i):'')+'</div>';
+}
+function filtered(){
+  var zs=D.zones.filter(function(z){return (!st.viaje||z.minuts<=st.viaje)&&(!st.esp||z.pendent||z.especies[st.esp])});
+  zs.sort(function(a,b){if(st.orden==='viaje')return a.minuts-b.minuts;var x=best(a,st.day,st.esp).s,y=best(b,st.day,st.esp).s;return (y==null?-1:y)-(x==null?-1:x)});
+  return zs;
+}
+function renderDias(){
+  dayChips($('days1'));
+  chips($('f-viaje'),[[0,'Todas'],[60,'Hasta 1 h'],[90,'Hasta 1 h 30'],[120,'Hasta 2 h']],'viaje');
+  var sp={};D.zones.forEach(function(z){Object.keys(z.especies).forEach(function(k){sp[k]=1})});
+  var so=[['','Todas']].concat(Object.keys(sp).sort(function(a,b){return a.localeCompare(b,'es')}).map(function(k){return[k,k]}));
+  chips($('f-esp'),so,'esp');chips($('f-esp2'),so,'esp');
+  chips($('f-orden'),[['score','Mejor puntuación'],['viaje','Más cerca']],'orden');
+  var zs=filtered();
+  $('zlist').innerHTML=zs.length?zs.map(function(z){return card(z,st.open===z.id)}).join(''):'<div class="empty">Ninguna zona cumple estos filtros. Prueba a ampliar el tiempo de viaje.</div>';
+}
+
+/* ---------- mapa ---------- */
+var V={s:1,x:0,y:0}, MAXS=6, T={on:false,imgs:{},t:0};
+// Teselas topográficas: solo se activan si el navegador puede cargarlas (web propia); si no, queda el relieve.
+function lon2t(lon,z){return Math.floor((lon+180)/360*Math.pow(2,z))}
+function lat2t(lat,z){var r=lat*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*Math.pow(2,z))}
+function t2lon(x,z){return x/Math.pow(2,z)*360-180}
+function t2lat(y,z){var n=Math.PI-2*Math.PI*y/Math.pow(2,z);return 180/Math.PI*Math.atan(.5*(Math.exp(n)-Math.exp(-n)))}
+function turl(z,x,y){return 'https://'+'abc'.charAt((x+y)%3)+'.tile.opentopomap.org/'+z+'/'+x+'/'+y+'.png'}
+function tiles(){
+  var b=$('mapbox'),W=b.clientWidth,H=b.clientHeight;if(!T.on||!W)return;
+  var dLon=GEO.lon1-GEO.lon0,dLat=GEO.lat1-GEO.lat0,dpr=Math.min(2,window.devicePixelRatio||1);
+  var z=Math.max(7,Math.min(15,Math.round(Math.log(360*W*V.s*dpr/(dLon*256))/Math.LN2)));
+  var lonA=GEO.lon0+(-V.x/(W*V.s))*dLon,lonB=GEO.lon0+((W-V.x)/(W*V.s))*dLon,latA=GEO.lat1-(-V.y/(H*V.s))*dLat,latB=GEO.lat1-((H-V.y)/(H*V.s))*dLat;
+  var keep={},L=$('tiles');
+  for(var x=lon2t(lonA,z);x<=lon2t(lonB,z);x++)for(var y=lat2t(latA,z);y<=lat2t(latB,z);y++){
+    var k=z+'/'+x+'/'+y;keep[k]=1;if(T.imgs[k])continue;
+    var w0=t2lon(x,z),w1=t2lon(x+1,z),n0=t2lat(y,z),n1=t2lat(y+1,z),im=new Image();
+    im.style.cssText='left:'+((w0-GEO.lon0)/dLon*100)+'%;top:'+((GEO.lat1-n0)/dLat*100)+'%;width:'+((w1-w0)/dLon*100)+'%;height:'+((n0-n1)/dLat*100)+'%';
+    im.alt='';im.onload=function(){this.style.opacity=1};im.src=turl(z,x,y);L.appendChild(im);T.imgs[k]=im}
+  Object.keys(T.imgs).forEach(function(k){if(!keep[k]){T.imgs[k].remove();delete T.imgs[k]}});
+}
+(function(){var pr=new Image();pr.onload=function(){T.on=true;MAXS=48;$('mapbox').classList.add('has-tiles');$('attr').hidden=false;tiles()};pr.src=turl(8,128,94)})();
+function pos(lat,lon){return 'left:'+((lon-GEO.lon0)/(GEO.lon1-GEO.lon0)*100).toFixed(2)+'%;top:'+((GEO.lat1-lat)/(GEO.lat1-GEO.lat0)*100).toFixed(2)+'%'}
+function applyV(){var b=$('mapbox'),W=b.clientWidth,H=b.clientHeight;V.s=Math.min(MAXS,Math.max(1,V.s));
+  V.x=Math.min(0,Math.max(W-W*V.s,V.x));V.y=Math.min(0,Math.max(H-H*V.s,V.y));
+  var w=$('world');w.style.transform='translate('+V.x+'px,'+V.y+'px) scale('+V.s+')';w.style.setProperty('--inv',1/V.s);clearTimeout(T.t);T.t=setTimeout(tiles,120)}
+function zoomAt(cx,cy,f){var ns=Math.min(MAXS,Math.max(1,V.s*f));V.x=cx-(cx-V.x)*(ns/V.s);V.y=cy-(cy-V.y)*(ns/V.s);V.s=ns;applyV()}
+function renderMapa(){
+  dayChips($('days2'));
+  var w=$('world'),old=w.querySelectorAll('.town,.mk,.camp');[].forEach.call(old,function(n){n.remove()});
+  var h=TOWNS.map(function(t){return '<span class="town" style="'+pos(t[1],t[2])+'">'+esc(t[0])+'</span>'}).join('');
+  h+='<span class="camp" style="'+pos(D.origen.lat,D.origen.lon)+'">Camping</span>';
+  D.zones.forEach(function(z){if(z.lat==null)return;var b=best(z,st.day,st.esp),has=!st.esp||z.pendent||z.especies[st.esp],sz=z.pendent?30:Math.round(28+(b.s||0)*.1);
+    h+='<button class="mk'+(st.sel===z.id?' sel':'')+'" data-id="'+z.id+'" style="'+pos(z.lat,z.lon)+';width:'+sz+'px;height:'+sz+'px;--c:'+col(b.s)+';opacity:'+(has?1:.35)+'" aria-label="'+esc(z.nom+(b.s!=null?', '+b.s:', zona nueva'))+'">'+(z.pendent?'+':b.s)+'</button>'});
+  w.insertAdjacentHTML('beforeend',h);applyV();
+  var z=zona(st.sel);$('mapdetail').innerHTML=z?card(z,true):'<div class="empty">Toca una zona del mapa para ver su detalle.</div>';
+}
+(function(){
+  var box=$('mapbox'),pts={},moved=false,last=null;
+  function rel(e){var r=box.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]}
+  box.addEventListener('pointerdown',function(e){if(e.target.closest('.zoomer'))return;pts[e.pointerId]=rel(e);moved=false;last=null});
+  box.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;var p=rel(e),ids=Object.keys(pts);
+    if(ids.length===1){var o=pts[e.pointerId];if(Math.abs(p[0]-o[0])+Math.abs(p[1]-o[1])>4||moved){if(!moved){moved=true;try{box.setPointerCapture(e.pointerId)}catch(x){}}V.x+=p[0]-o[0];V.y+=p[1]-o[1];applyV();pts[e.pointerId]=p}}
+    else if(ids.length===2){pts[e.pointerId]=p;var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a[0]-b[0],a[1]-b[1]),c=[(a[0]+b[0])/2,(a[1]+b[1])/2];
+      if(last){zoomAt(c[0],c[1],d/last.d);V.x+=c[0]-last.c[0];V.y+=c[1]-last.c[1];applyV()}last={d:d,c:c};moved=true}});
+  function up(e){delete pts[e.pointerId];last=null}
+  box.addEventListener('pointerup',up);box.addEventListener('pointercancel',up);
+  box.addEventListener('wheel',function(e){e.preventDefault();var p=rel(e);zoomAt(p[0],p[1],e.deltaY<0?1.25:.8)},{passive:false});
+  box.addEventListener('click',function(e){
+    if(e.target.id==='zin'||e.target.id==='zout'){zoomAt(box.clientWidth/2,box.clientHeight/2,e.target.id==='zin'?1.6:1/1.6);return}
+    if(moved){moved=false;return}
+    var m=e.target.closest('.mk');if(m){st.sel=+m.dataset.id;renderMapa()}});
+  window.addEventListener('resize',applyV);
+})();
+
+/* ---------- avistamientos ---------- */
+function renderSight(){
+  var tot=0,ok=0;
+  $('slist').innerHTML=D.avistaments.length?D.avistaments.map(function(a){
+    return '<div class="sight"><div class="h"><span>'+esc(a.zona||'Sin zona')+'</span><span>'+esc(dcorta(a.data))+'</span></div><div class="sp">'+
+      a.especies.map(function(s){if(s.index!=null){tot++;if(s.index>=65)ok++}
+        return '<span>'+esc(s.nom)+'</span>'+(s.index!=null?'<span class="pill '+cls(s.index)+'">índice '+s.index+'</span>':'<span class="pill x">sin índice ese día</span>')}).join('')+
+      '</div><div class="note">'+esc(a.qui||'')+(a.notes?' · '+esc(a.notes):'')+'</div></div>'}).join(''):'<div class="empty">Todavía no hay avistamientos apuntados.</div>';
+  $('s-sub').textContent='Citas del grupo y lo que marcaba el índice ese día para esa especie.'+(tot?' En '+ok+' de '+tot+' con índice, marcaba 65 o más.':'');
+}
+
+/* ---------- común ---------- */
+function render(){renderResumen();renderDias();renderMapa();renderSight()}
+function route(scroll){
+  var v=(location.hash||'').slice(1);if(VIEWS.indexOf(v)<0)v='resumen';
+  VIEWS.forEach(function(k){$('v-'+k).hidden=k!==v});
+  [].forEach.call(document.querySelectorAll('nav.tabs a'),function(a){if(a.getAttribute('href')==='#'+v)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+  if(v==='mapa')applyV();if(scroll!==false)window.scrollTo(0,0);
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-go]');
+  if(t){st.day=+t.dataset.day;st.open=+t.dataset.go;st.sel=st.open;render();location.hash='#dias';
+    setTimeout(function(){var el=document.querySelector('#zlist .zh[data-id="'+st.open+'"]');if(el)el.scrollIntoView({block:'center'})},60);return}
+  t=e.target.closest('.day');if(t){st.day=+t.dataset.i;render();return}
+  t=e.target.closest('.chip');if(t){var k=t.dataset.k;st[k]=k==='viaje'?+t.dataset.v:t.dataset.v;save();render();return}
+  t=e.target.closest('.zh');if(t){var id=+t.dataset.id;if(t.closest('#mapdetail'))return;st.open=st.open===id?null:id;renderDias()}
+});
+function readout(e){var s=e.target.closest('svg.rain');if(!s)return;var z=zona(s.dataset.z),P=z.pluja,r=s.getBoundingClientRect();
+  var k=Math.floor(((e.clientX-r.left)/r.width*320-4)/(312/P.mm.length));if(k<0||k>=P.mm.length)return;
+  var d=dt(P.d0);d.setDate(d.getDate()+k);var v=P.mm[k];
+  s.parentNode.querySelector('[data-rd]').textContent=WD[d.getDay()]+' '+d.getDate()+' '+MES[d.getMonth()]+': '+(v==null?'sin dato':String(v).replace('.',',')+' mm')+(k>=P.previst_des_de?' (previsto)':'')}
+document.addEventListener('pointermove',readout);document.addEventListener('pointerdown',readout);
+window.addEventListener('hashchange',function(){route()});
+function start(data){
+  D=data;if(st.day>=D.dies.length)st.day=0;
+  var g=dt(D.data_calcul);
+  $('date').textContent='Datos del '+WD[g.getDay()]+' '+g.getDate()+' de '+['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][g.getMonth()]+' · previsión a '+D.dies.length+' días';
+  var ok=D.zones.filter(function(z){return !z.pendent});
+  if(st.sel==null&&ok.length)st.sel=ok.slice().sort(function(a,b){return best(b,0).s-best(a,0).s})[0].id;
+  render();route(false);
+}
+var fb=JSON.parse($('fallback').textContent);
+start(fb);
+fetch('dades.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.zones&&j.generat>fb.generat)start(j)}).catch(function(){});
+})();
+</script>
+</body></html>

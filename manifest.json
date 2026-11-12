@@ -1,0 +1,1 @@
+{"name": "El boletaire campista", "short_name": "Boletaire", "start_url": ".", "display": "standalone", "background_color": "#ECEFE7", "theme_color": "#1E3A2B", "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}]}
