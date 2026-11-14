@@ -474,7 +474,7 @@ function shrink(inp){var f=inp.files&&inp.files[0];if(!f||!window.DataTransfer||
   var im=new Image(),u=URL.createObjectURL(f);
   im.onload=function(){var k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
-    c.toBlob(function(b){if(!b)return;try{var d=new DataTransfer();d.items.add(new File([b],'foto.jpg',{type:'image/jpeg'}));inp.files=d.files}catch(e){}},'image/jpeg',.8)};
+    c.toBlob(function(b){if(!b)return;try{var d=new DataTransfer();d.items.add(new File([b],(inp.id==='fr-f2'?'foto2':'foto1')+'.jpg',{type:'image/jpeg'}));inp.files=d.files}catch(e){}},'image/jpeg',.8)};
   im.src=u}
 $('fr-f1').addEventListener('change',function(){shrink(this)});$('fr-f2').addEventListener('change',function(){shrink(this)});
 $('frm').addEventListener('input',function(){$('fr-err').hidden=true});
